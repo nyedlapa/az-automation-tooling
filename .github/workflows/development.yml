@@ -1,0 +1,35 @@
+name: automation-tooling-development
+
+####################################################################
+## Triggers
+####################################################################
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: build workflow id to pick artifacts and deploy
+        required: true
+
+####################################################################
+## Permissions
+####################################################################
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+
+####################################################################
+## Jobs
+####################################################################
+jobs:
+  deploy:
+    uses: fbitn/az-automation-tooling/.github/workflows/deploy.yml@main
+    with:
+      template_file_path: infrastructure/main.bicep
+      schedule_template_file_path: infrastructure/scheduler.bicep
+      build_id: ${{ inputs.build_id }}
+      workload: "automation-tooling"
+      environment: np
+      location: eastus2
+      instance_count: "01"
+    secrets: inherit
