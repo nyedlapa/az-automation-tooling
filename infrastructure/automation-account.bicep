@@ -29,7 +29,7 @@ param readerSPNSecret string
 @description('ClientSecretExpiration notification receiver EmailI')
 param emailSender string
 
-@description(ClientSecretExpiration Notifications Sender EmailId')
+@description('ClientSecretExpiration Notifications Sender EmailId')
 param emailTo string
 
 
