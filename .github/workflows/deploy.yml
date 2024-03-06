@@ -68,7 +68,7 @@ jobs:
         with:
           resourceGroupName: rg-${{ inputs.workload }}-${{ inputs.environment }}-${{ inputs.location }}-${{ inputs.instance_count }}
           template: ${{ inputs.template_file_path }}
-          parameters: environment=${{ inputs.environment }} workload=${{ inputs.workload }} location=${{ inputs.location }} AppSecretValue=${{ secrets.AZURE_APP_SECRET }} EmailSender=${{ secrets.EMAIL_SENDER }} EmailTo=${{ secrets.EMAIL_TO }}
+          parameters: environment=${{ inputs.environment }} workload=${{ inputs.workload }} location=${{ inputs.location }} readerSPNSecret=${{ secrets.AZURE_APP_SECRET }} EmailSender=${{ secrets.EMAIL_SENDER }} EmailTo=${{ secrets.EMAIL_TO }}
           deploymentmode: Validate
           scope: resourcegroup
       ####################################################################
@@ -79,7 +79,7 @@ jobs:
         with:
           resourceGroupName: rg-${{ inputs.workload }}-${{ inputs.environment }}-${{ inputs.location }}-${{ inputs.instance_count }}
           template: ${{ inputs.template_file_path }}
-          parameters: environment=${{ inputs.environment }} workload=${{ inputs.workload }} location=${{ inputs.location }} AppSecretValue=${{ secrets.AZURE_APP_SECRET }} EmailSender=${{ secrets.EMAIL_SENDER }} EmailTo=${{ secrets.EMAIL_TO }}
+          parameters: environment=${{ inputs.environment }} workload=${{ inputs.workload }} location=${{ inputs.location }} readerSPNSecret=${{ secrets.AZURE_APP_SECRET }} EmailSender=${{ secrets.EMAIL_SENDER }} EmailTo=${{ secrets.EMAIL_TO }}
           deploymentmode: Complete
           scope: resourcegroup 
           
