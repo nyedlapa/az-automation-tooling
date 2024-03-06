@@ -1,0 +1,47 @@
+name: automation-tooling-production
+
+####################################################################
+## Triggers
+####################################################################
+on:
+  workflow_dispatch:
+    inputs:
+      build_id:
+        description: build workflow id to pick artifacts and deploy
+        required: true
+
+####################################################################
+## Permissions
+####################################################################
+permissions:
+  id-token: write
+  contents: write
+  actions: read
+
+####################################################################
+## Jobs
+####################################################################
+jobs:
+  deploy:
+    uses: fbitn/az-automation-tooling/.github/workflows/deploy.yml@main
+    with:
+      template_file_path: infrastructure/main.bicep
+      schedule_template_file_path: infrastructure/scheduler.bicep
+      build_id: ${{ inputs.build_id }}
+      workload: "automation-tooling"
+      environment: prd
+      location: eastus2
+      instance_count: "01"
+    secrets: inherit
+  deploy-schedule-prd:
+    name: Deploying Schedule on prd
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Scheduling the runbook.
+        uses: azure/arm-deploy@v1
+        with:
+          resourceGroupName: rg-${{ inputs.workload }}-${{ inputs.environment }}-${{ inputs.location }}-${{ inputs.instance_count }}
+          template: ${{ inputs.schedule_template_file_path }}
