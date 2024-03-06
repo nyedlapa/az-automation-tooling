@@ -119,7 +119,7 @@ resource automationAccountEmailSenderVariable 'Microsoft.Automation/automationAc
   name: 'emailSender'
   properties: {
     isEncrypted: true
-    value: '"${EmailSender}"'
+    value: '"${emailSender}"'
   }
 }
 
@@ -129,6 +129,6 @@ resource automationAccountEmailToVariable 'Microsoft.Automation/automationAccoun
   name: 'emailTo'
   properties: {
     isEncrypted: false
-    value: '"${EmailTo}"'
+    value: '"${emailTo}"'
   }
 }
