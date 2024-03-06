@@ -23,7 +23,7 @@ permissions:
 ####################################################################
 jobs:
   deploy:
-    uses: fbitn/az-automation-tooling/.github/workflows/deploy.yml@main
+    uses: nareshyedlapalli/az-automation-tooling/.github/workflows/deploy.yml@main
     with:
       template_file_path: infrastructure/main.bicep
       schedule_template_file_path: infrastructure/scheduler.bicep
