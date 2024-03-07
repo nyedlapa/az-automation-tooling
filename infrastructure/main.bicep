@@ -1,104 +1,65 @@
-name: automation-account-deploy
+@description('Workload name')
+param workload string 
 
-####################################################################
-## Triggers
-####################################################################
-on:
-  workflow_call:
-    inputs:
-      template_file_path: 
-        required: true
-        description: Path to bicep template to deploy infrastructure.
-        type: string
-      schedule_template_file_path: 
-        required: true
-        description: Path to bicep template to deploy infrastructure.
-        type: string
-      build_id:
-        required: true
-        description: Run ID to download artifact from workflow
-        type: string
-      workload:
-        required: true
-        description: Busineed workload type
-        type: string
-      environment:
-        required: true
-        description: Environment to run this workflow
-        type: string
-      location:
-        required: true
-        description: Azure location to carry out deployment
-        type: string
-      instance_count:
-        required: true
-        description: Two digit instance count for azure resources
-        type: string
+@description('Environment name')
+param environment string
 
-####################################################################
-## Job
-####################################################################
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    steps:
-      ####################################################################
-      ## Download artifacts from pipeline
-      ####################################################################
-      - name: Downloading artifacts
-        uses: dawidd6/action-download-artifact@v2
-        with:
-          workflow: build.yml
-          run_id: ${{ inputs.build_id }}
-      ####################################################################
-      ## Login to azure
-      ####################################################################
-      - name: Login to azure
-        uses: azure/login@v1
-        with:
-          client-id: ${{ secrets.CLIENT_ID }}
-          tenant-id: ${{ secrets.TENANT_ID }}
-          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
-      ####################################################################
-      ## Running infrastructure validation
-      ####################################################################
-      - name: Running preflight validation
-        uses: azure/arm-deploy@v1
-        with:
-          resourceGroupName: rg-${{ inputs.workload }}-${{ inputs.environment }}-${{ inputs.location }}-${{ inputs.instance_count }}
-          template: ${{ inputs.template_file_path }}
-          parameters: environment=${{ inputs.environment }} workload=${{ inputs.workload }} location=${{ inputs.location }} readerSPNSecret=${{ secrets.AZURE_APP_SECRET }} emailSender=${{ secrets.EMAIL_SENDER }} emailTo=${{ secrets.EMAIL_TO }} clientId=${{ secrets.CLIENT_ID }} tenantId=${{ secrets.TENANT_ID }}subscriptionId${{ secrets.SUBSCRIPTION_ID }}
-          deploymentmode: Validate
-          scope: resourcegroup
-      ####################################################################
-      ## Deploying infrasturcture
-      ####################################################################
-      - name: Deploying azure infrastructure
-        uses: azure/arm-deploy@v1
-        with:
-          resourceGroupName: rg-${{ inputs.workload }}-${{ inputs.environment }}-${{ inputs.location }}-${{ inputs.instance_count }}
-          template: ${{ inputs.template_file_path }}
-          parameters: environment=${{ inputs.environment }} workload=${{ inputs.workload }} location=${{ inputs.location }} readerSPNSecret=${{ secrets.AZURE_APP_SECRET }} emailSender=${{ secrets.EMAIL_SENDER }} emailTo=${{ secrets.EMAIL_TO }} clientId=${{ secrets.CLIENT_ID }} tenantId=${{ secrets.TENANT_ID }}subscriptionId${{ secrets.SUBSCRIPTION_ID }}
-          deploymentmode: Complete
-          scope: resourcegroup 
-          
-      ####################################################################
-      ## Deploying Runbooks
-      ####################################################################
+@description('Resource Group location')
+param location string
 
-      - name: Importing runbooks
-        shell: pwsh
-        env:
-         AZURE_CLIENT_ID: ${{ secrets.CLIENT_ID }}
-         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_APP_SECRET }}
-         AZURE_SUBSCRIPTION_ID: ${{ secrets.SUBSCRIPTION_ID }}
-         AZURE_TENANT_ID: ${{ secrets.TENANT_ID }}
-        run: |
-         # Import Azure PowerShell module
-          Import-Module -Name Az -Force# Authenticate with Azure using service principal credentials
-          $SecurePassword = ConvertTo-SecureString -String $env:AZURE_CLIENT_SECRET -AsPlainText -Force
-          $Credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $env:AZURE_CLIENT_ID, $SecurePassword
-          Connect-AzAccount -ServicePrincipal -tenantId $env:AZURE_TENANT_ID -Credential $Credential -Subscription $env:AZURE_SUBSCRIPTION_ID
-          Set-AzContext -SubscriptionName $env:AZURE_SUBSCRIPTION_ID
-          ./.github/powershell/deployRunbook.ps1 rg-${{ inputs.WORKLOAD }}-${{ inputs.ENVIRONMENT }}-${{ inputs.LOCATION }}-${{ inputs.INSTANCE_COUNT }} aa-${{ inputs.WORKLOAD }}-${{ inputs.ENVIRONMENT }}-${{ inputs.LOCATION }}-${{ inputs.INSTANCE_COUNT }}
+@description('Azure Service Principle client Secret')
+@secure()
+param readerSPNSecret string
+
+@description('ClientSecretExpiration notification receiver EmailId')
+param emailTo string
+
+@description('ClientSecretExpiration Notifications Sender EmailId')
+param emailSender string
+
+@description('subscription ID')
+param subscriptionId string
+
+@description('client ID')
+param clientId string
+
+@description('tenantId ID')
+param tenantId string
+ 
+
+
+@description('A module that defines all the environment specific configuration')
+module configModule './configuration.bicep' = {
+  name: '${resourceGroup().name}-config-module'
+  scope: resourceGroup()
+  params: {
+    environment: environment
+  }
+}
+
+@description('A variable to hold all environment specific variables')
+var config = configModule.outputs.settings
+
+@description('Obtaining reference to the virtual network subnet for the private endpoints')
+resource privateEndpointSubnet 'Microsoft.Network/virtualNetworks/subnets@2021-08-01' existing = {
+  name: '${config.privateEndpointVnet.virtualNetworkName}/${config.privateEndpointVnet.subnetName}'
+  scope: resourceGroup(config.privateEndpointVnet.resoureGroupName)
+}
+
+@description('Module to create automation-account')
+module automationAccountModule './automation-account.bicep' = {
+  name:  'aa-${workload}-${environment}-${location}-01'
+  params: {
+    automationAccountName: 'aa-${workload}-${environment}-${location}-01'
+    location: location
+    subscriptionId: subscriptionId
+    clientId: clientId
+    privateEndpointSubnetId: privateEndpointSubnet.id
+    workload: workload
+    environment: environment
+    tenantId: tenantId
+    readerSPNSecret: readerSPNSecret
+    emailSender: emailSender
+    emailTo: emailTo
+  }    
+}
