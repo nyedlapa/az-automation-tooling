@@ -76,7 +76,7 @@ jobs:
       ####################################################################
       - name: Deploying azure infrastructure
         run: |
-          az deployment group create --resource-group rg-${{ inputs.workload }}-${{ inputs.environment }}-${{ inputs.location }}-${{ inputs.instance_count }} --template-file ${{ inputs.template_file_path }} --parameters environment=${{ inputs.environment }} workload=${{ inputs.workload }} location=${{ inputs.location }} readerSPNSecret=${{ secrets.AZURE_APP_SECRET }} emailSender=${{ vars.EMAIL_SENDER }} emailTo=${{ vars.EMAIL_TO }} clientId=${{ secrets.AZURE_CLIENT_ID }} tenantId=${{ secrets.AZURE_TENANT_ID }} subscriptionId=${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          az deployment group create --resource-group rg-${{ inputs.workload }}-${{ inputs.environment }}-${{ inputs.location }}-${{ inputs.instance_count }} --template-file ${{ inputs.template_file_path }} --parameters environment=${{ inputs.environment }} workload=${{ inputs.workload }} location=${{ inputs.location }} readerSPNSecret=${{ secrets.AZURE_APP_SECRET }} emailSender=${{ secrets.EMAIL_SENDER }} emailTo=${{ secrets.EMAIL_TO }} clientId=${{ secrets.CLIENT_ID }} tenantId=${{ secrets.TENANT_ID }} subscriptionId=${{ secrets.SUBSCRIPTION_ID }}
           
       ####################################################################
       ## Deploying Runbooks
