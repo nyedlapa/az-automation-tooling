@@ -132,3 +132,19 @@ resource automationAccountEmailToVariable 'Microsoft.Automation/automationAccoun
     value: '"${emailTo}"'
   }
 }
+
+var psGalleryModules = [
+  'SentinelARConverter'
+  'powershell-yaml'
+]
+
+resource PSGalleryModules72 'Microsoft.Automation/automationAccounts/powerShell72Modules@2023-11-01' = [for psGalleryModule in psGalleryModules: {
+  name: psGalleryModule
+  parent: myAutomationAccount
+  tags: {}
+  properties: {
+    contentLink: {
+      uri: 'https://www.powershellgallery.com/api/v2/package/${psGalleryModule}'
+    }
+  }
+}]
