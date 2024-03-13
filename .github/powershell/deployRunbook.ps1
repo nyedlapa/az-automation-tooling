@@ -5,6 +5,9 @@ $clientSecretExpiration = 'clientSecretExpiration'
 
 Import-AzAutomationRunbook -AutomationAccountName $automationAccountName -ResourceGroupName $ResourceGroup -Name $clientSecretExpiration -Path "./infrastructure/runbooks/client-secret-expiration.ps1" -Published -Type PowerShell -Force
 
+# Get the runbook
+$runbook = Get-AzAutomationRunbook -AutomationAccountName $automationAccountName -ResourceGroupName $ResourceGroup -Name $clientSecretExpiration
+
 # Get the content of the existing runbook
 $runbookContent = Get-AzAutomationRunbookContent -AutomationAccountName $automationAccountName -ResourceGroupName $ResourceGroup -Name $clientSecretExpiration
 
