@@ -133,18 +133,21 @@ resource automationAccountEmailToVariable 'Microsoft.Automation/automationAccoun
   }
 }
 
-var psGalleryModules = [
-  'SentinelARConverter'
-  'powershell-yaml'
-]
+param artifactsLocation string = 'https://raw.githubusercontent.com/nareshyedlapalli/az-automation-tooling/main/infrastructure/runbooks/client-secret-expiration.ps1'
 
-resource PSGalleryModules72 'Microsoft.Automation/automationAccounts/powerShell72Modules@2023-11-01' = [for psGalleryModule in psGalleryModules: {
-  name: psGalleryModule
-  parent: myAutomationAccount
-  tags: {}
+
+resource exampleRunbookPowerShellCore 'Microsoft.Automation/automationAccounts/runbooks@2023-11-01' = {
+  name: 'exampleRunbookPowerShellCore'
+  parent: automationAccount
+  location: location
   properties: {
-    contentLink: {
-      uri: 'https://www.powershellgallery.com/api/v2/package/${psGalleryModule}'
+    description: 'Search for service principals and application to build a watchlist WorkloadIdentityInfo'
+    runbookType: 'PowerShell72'
+    logProgress: false
+    logVerbose: false
+    publishContentLink: {
+      uri: uri(artifactsLocation, 'client-secret-expiration.ps1')
+      version: '1.0.0.0'
     }
   }
-}]
+}
